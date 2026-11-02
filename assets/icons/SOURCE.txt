@@ -1,0 +1,6 @@
+Official Lucide SVG assets: https://github.com/lucide-icons/lucide/tree/main/icons
+SVG paths unchanged; symbols embedded for offline file opening. License included.
+
+Navigation: Tabler shield-check (filled), eye-off (outline); Bootstrap speedometer. Downloaded official SVG paths unchanged. Licenses bundled.
+
+Motion protection: https://github.com/lucide-icons/lucide/blob/main/icons/vibrate-off.svg (unchanged artwork)
