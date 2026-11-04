@@ -1,0 +1,1 @@
+{"version":"2026.11.04","scope":"prototype-catalog","categories":["ads","mining","phishing","malware"],"rules":[{"category":"ads","domain":"ads.example.test"},{"category":"mining","domain":"miner.example.test"},{"category":"phishing","domain":"phishing.example.test"},{"category":"malware","domain":"malware.example.test"}]}
