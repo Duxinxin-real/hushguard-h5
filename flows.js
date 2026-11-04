@@ -87,7 +87,7 @@ function vaultSettings(){if(session!=='real')return vaultEntry();screen('Space s
 qa('[data-info]').forEach(b=>b.onclick=b.dataset.info==='Cloud Storage'?cloud:vaultEntry);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&session){session=null;closeModal();home()}});
 // Shared protection persistence and disable confirmation, preserving existing home UI.
-function persistProtection(){data.protection=protections.map(p=>({authorized:p.authorized,enabled:p.enabled}));save()}
+function persistProtection(){data.protection=protections.map(p=>({authorized:p.authorized,enabled:p.enabled,confirmedByUser:!!p.confirmedByUser}));save()}
 protections.forEach((p,i)=>{if(data.protection[i])Object.assign(p,data.protection[i]);p.button.onclick=()=>{if(!p.authorized){showPermissionGuide([p]);return}if(p.enabled){confirm('Turn off protection?',`${p.name} will be turned off.`,'Turn Off',()=>{p.enabled=false;persistProtection();checkProtection()})}else{p.enabled=true;persistProtection();checkProtection()}}});
 const oldSync=syncProtection;syncProtection=function(){oldSync();persistProtection()};syncProtection();
 let enablingAll=false;const originalGuide=showPermissionGuide;showPermissionGuide=function(targets,all=false){enablingAll=all;originalGuide(targets);enhanceGuide()};
