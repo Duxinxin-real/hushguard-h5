@@ -28,12 +28,13 @@ function checkProtection(){
  clearInterval(checkTimer);checking=true;syncProtection();let value=0;progressArc.style.strokeDashoffset='100';progress.setAttribute('aria-valuenow','0');
  checkTimer=setInterval(()=>{value=Math.min(100,value+5);progressArc.style.strokeDashoffset=String(100-value);progress.setAttribute('aria-valuenow',value);if(value===100){clearInterval(checkTimer);setTimeout(()=>{checking=false;syncProtection()},180)}},90);
 }
-function showPermissionGuide(targets){
+function showPermissionGuide(targets,all=false,contextTitle){
  clearInterval(guideTimer);let position=0;
  function renderGuide(){
   const p=targets[position];
   if(!p){document.querySelector('#dialog').close();document.querySelector('[data-tab="security"]').click();checkProtection();return}
-  modal(p.name,`<div class="permission-guide"><div class="ios-guide ios-guide-${protections.indexOf(p)}" role="img" aria-label="${p.name} settings guide"><span class="settings-highlight"></span><span class="tap-pulse"></span></div><div class="guide-caption">${position+1} / ${targets.length} · Enable protection</div><ol class="permission-steps">${p.steps.map((step,i)=>`<li class="${i===0?'current':''}"><span>${i+1}</span>${step}</li>`).join('')}</ol><button class="primary" id="grant-permission">Open Settings</button></div>`);
+  const guideTitle=contextTitle&&targets.length===1?contextTitle:p.name;
+  modal(guideTitle,`<div class="permission-guide"><div class="ios-guide ios-guide-${protections.indexOf(p)}" role="img" aria-label="${guideTitle} settings guide"><span class="settings-highlight"></span><span class="tap-pulse"></span></div><div class="guide-caption">${position+1} / ${targets.length} · Enable protection</div><ol class="permission-steps">${p.steps.map((step,i)=>`<li class="${i===0?'current':''}"><span>${i+1}</span>${step}</li>`).join('')}</ol><button class="primary" id="grant-permission">Open Settings</button></div>`);
   let step=0;clearInterval(guideTimer);guideTimer=setInterval(()=>{step=(step+1)%3;document.querySelectorAll('.permission-steps li').forEach((li,i)=>li.classList.toggle('current',i===step))},1400);
   document.querySelector('#grant-permission').onclick=()=>{p.authorized=true;p.enabled=true;clearInterval(guideTimer);position++;syncProtection();renderGuide()};
  }

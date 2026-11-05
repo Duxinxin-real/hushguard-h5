@@ -46,7 +46,7 @@ away.querySelector('button').onclick=ask;
 prompt.querySelector('.shake-no').onclick=()=>{prompt.hidden=true;returned=false;away.hidden=false;play();away.querySelector('button').focus()};
 prompt.querySelector('.shake-yes').onclick=()=>{const queue=remaining,wasAll=all;end();p.authorized=true;p.enabled=true;p.confirmedByUser=true;syncProtection();if(queue.length)oldGuide(queue,wasAll);else{if(wasAll)protections.forEach(x=>x.enabled=true);checkProtection()}p.button.focus()};
 layer.querySelectorAll('[data-scene]').forEach(b=>b.onclick=()=>scene(Number(b.dataset.scene)));
-showPermissionGuide=function(targets,enableAll=false){if(targets.includes(p)){show(targets,enableAll)}else oldGuide(targets,enableAll)};
+showPermissionGuide=function(targets,enableAll=false,contextTitle){if(targets.includes(p)){show(targets,enableAll)}else oldGuide(targets,enableAll,contextTitle)};
 p.button.onclick=()=>{if(p.enabled)oldClick();else show([p])};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(active)stop()}else{if(!layer.hidden)play();if(pending)ask()}});
 window.addEventListener('pagehide',stop);
