@@ -6,3 +6,12 @@
 .shake-ios-nav .ios-back{position:static;grid-column:1;font-size:28px;line-height:36px;width:30px;height:36px;justify-content:center;overflow:hidden}
 .shake-ios-nav .ios-title{grid-column:2;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;line-height:20px;letter-spacing:-.3px}
 .shake-ios-nav .ios-edit{position:static;grid-column:3;text-align:right;font-size:12px;white-space:nowrap}
+
+/* Authentic setting/app artwork retains its original colors and proportions. */
+.shake-ios-row>img.settings-row-icon{width:25px;height:25px;object-fit:contain;margin-left:0;opacity:1;flex:0 0 25px}
+.settings-row-label{min-width:0;flex:1;font-size:12px;line-height:15px}
+.shake-heading h2{min-width:0;flex:1;font-size:21px;line-height:26px;padding-right:8px}
+.shake-heading button{flex-shrink:0}
+.shake-ios-row .shake-ios-toggle.is-off{background:#d1d1d6}
+.shake-ios-row .shake-ios-toggle.is-off:after{margin-left:0}
+.shake-ios-toggle,.shake-ios-toggle:after{transition:background .25s,margin-left .25s}

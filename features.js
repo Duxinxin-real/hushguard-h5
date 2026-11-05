@@ -21,6 +21,7 @@ const scroll=document.createElement('div');scroll.className='security-scroll';co
 const titles={mining:'Crypto Mining Block',phishing:'Phishing Protection',malware:'Malware Protection'};
 const glyphs={mining:'home-cpu',phishing:'home-fish-hook',malware:'shield'};
 filters.slice(1).forEach(([k])=>{const card=document.createElement('div');card.className='panel home-web-card';card.dataset.category=k;card.innerHTML=`<div class="card-heading">${icon(glyphs[k])}<span>${titles[k]}</span><button class="switch" role="switch" aria-label="${titles[k]}" data-web-filter="${k}" aria-checked="false"></button></div>`;canvas.insertBefore(card,canvas.querySelector('.dual'));card.querySelector('button').onclick=()=>changeFilter(k)});
+canvas.insertBefore(canvas.querySelector('.motion-card'),canvas.querySelector('.dual'));
 web.button.dataset.webFilter='ads';web.button.onclick=()=>changeFilter('ads');
 function changeFilter(k){const refresh=()=>{syncProtection();if(view==='Web Ad Block')webPage()};if(web.enabled&&prefs[k]){F.confirm('Turn off this filter?','Other selected web filters will stay on.','Turn Off',()=>{prefs[k]=false;savePrefs();web.enabled=count()>0;refresh()});return}prefs[k]=true;savePrefs();if(!web.authorized){showPermissionGuide([web],false,titles[k]||'Web Ad Block');q('#dialog').addEventListener('close',refresh,{once:true})}else{web.enabled=true;refresh()}}
 syncProtection();
