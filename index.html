@@ -10,12 +10,35 @@
 <link rel="icon" type="image/svg+xml" href="assets/brand/logo-card.svg">
 <link rel="stylesheet" href="launch.css">
 <link rel="stylesheet" href="shake-guide.css?v=3">
-<link rel="stylesheet" href="features.css?v=2">
+<link rel="stylesheet" href="features.css?v=line-icons-2">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <linearGradient id="arc" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0d6"/><stop offset="1" stop-color="#ff8738"/></linearGradient>
-<symbol id="shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+<symbol id="home-vibrate" viewBox="0 0 24 24">
+  <path d="m2 8 2 2-2 2 2 2-2 2" />
+  <path d="m22 8-2 2 2 2-2 2 2 2" />
+  <rect width="8" height="14" x="8" y="5" rx="1" />
+</symbol><symbol id="home-cpu" viewBox="0 0 24 24">
+  <path d="M12 20v2" />
+  <path d="M12 2v2" />
+  <path d="M17 20v2" />
+  <path d="M17 2v2" />
+  <path d="M2 12h2" />
+  <path d="M2 17h2" />
+  <path d="M2 7h2" />
+  <path d="M20 12h2" />
+  <path d="M20 17h2" />
+  <path d="M20 7h2" />
+  <path d="M7 20v2" />
+  <path d="M7 2v2" />
+  <rect x="4" y="4" width="16" height="16" rx="2" />
+  <rect x="8" y="8" width="8" height="8" rx="1" />
+</symbol><symbol id="home-fish-hook" viewBox="0 0 24 24">
+  <path d="M16 9v6a5 5 0 0 1 -10 0v-4l3 3" />
+  <path d="M14 7a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+  <path d="M16 5v-2" />
+</symbol><symbol id="shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
   <path d="m9 12 2 2 4-4" /></symbol>
 <symbol id="eye" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
   <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
@@ -89,8 +112,8 @@
 <section id="security" class="tab-page active" aria-label="Security">
 
 <div class="gauge security-gauge" data-gauge="0.82"><div class="gauge-disc"></div><div class="gauge-content"><h2 id="protection-title">Protected</h2><p id="protection-count">3 of 3 active</p><button class="power" id="all-power" aria-label="Toggle all protection" aria-pressed="true"><svg class="icon"><use href="#power"/></svg></button></div></div>
-<div class="panel motion-card"><div class="card-heading"><img class="security-feature-art" src="assets/icons/security-gold/shake.png" alt=""><span>Shake Ad Protection</span><button class="motion-switch" id="motion-setup" role="switch" aria-checked="false" aria-label="Shake Ad Protection" aria-haspopup="dialog"></button></div></div>
-<div class="panel ad"><div class="card-heading"><span class="ad-icon"><img class="security-feature-art" src="assets/icons/security-gold/ads.png" alt=""></span><span>Web Ad Block</span><button class="switch" role="switch" aria-label="Web Ad Block" aria-checked="true"></button></div></div>
+<div class="panel motion-card"><div class="card-heading"><svg class="icon"><use href="#home-vibrate"/></svg><span>Shake Ad Protection</span><button class="motion-switch" id="motion-setup" role="switch" aria-checked="false" aria-label="Shake Ad Protection" aria-haspopup="dialog"></button></div></div>
+<div class="panel ad"><div class="card-heading"><span class="ad-icon"><svg class="icon"><use href="#ad"/></svg><svg class="icon ban-icon"><use href="#ban"/></svg></span><span>Web Ad Block</span><button class="switch" role="switch" aria-label="Web Ad Block" aria-checked="true"></button></div></div>
 <div class="dual"><div class="panel protection"><div class="card-heading"><svg class="icon"><use href="#call"/></svg>Call Blocker</div><button class="switch" role="switch" aria-label="Call Blocker" aria-checked="true"></button></div><div class="panel protection"><div class="card-heading"><svg class="icon"><use href="#chat"/></svg>SMS Filter</div><button class="switch" role="switch" aria-label="SMS Filter" aria-checked="true"></button></div></div>
 </section>
 <section id="status" class="tab-page" aria-label="Status"><div class="status-top"><div class="gauge score" data-gauge="0.42"><div class="gauge-disc"></div><div class="gauge-content"><strong>32</strong><p>Device Score</p></div></div><div class="metrics"><div><div class="metric-label">Storage<strong>96%</strong></div><div class="bar"><i style="width:96%"></i></div></div><div><div class="metric-label">RAM<strong>95%</strong></div><div class="bar"><i style="width:95%"></i></div></div><div><div class="metric-label">CPU<strong>67%</strong></div><div class="bar"><i style="width:67%"></i></div></div><div><div class="metric-label">Battery<strong>Unplugged</strong></div><div class="bar"><i style="width:48%"></i></div></div></div></div>
@@ -130,4 +153,4 @@ function fitPreview(){
 fitPreview();
 window.addEventListener('resize',fitPreview);
 window.visualViewport?.addEventListener('resize',fitPreview);
-</script><script src="protection.js?v=3"></script><script src="tutorial-motion.js?v=2"></script><script src="flows.js?v=features-1"></script><script src="launch.js"></script><script src="shake-guide.js?v=3"></script><script src="vault-crypto.js?v=1"></script><script src="features.js?v=5"></script></body></html>
+</script><script src="protection.js?v=3"></script><script src="tutorial-motion.js?v=2"></script><script src="flows.js?v=features-1"></script><script src="launch.js"></script><script src="shake-guide.js?v=3"></script><script src="vault-crypto.js?v=1"></script><script src="features.js?v=line-icons-2"></script></body></html>

@@ -18,6 +18,3 @@
 #security .home-web-card .switch{margin-left:auto;flex-shrink:0}
 #security .security-scroll-content>.dual{position:absolute;top:797px;left:16px;right:16px;gap:13px}
 
-/* Original generated artwork: distinct silhouettes for home protections. */
-#security .card-heading .security-feature-art{display:block;width:42px;height:42px;object-fit:contain;flex:0 0 42px;filter:none}
-#security .ad-icon{display:flex;align-items:center;justify-content:center;width:42px;height:42px;flex:0 0 42px}
