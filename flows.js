@@ -8,7 +8,7 @@ function save(){try{localStorage.setItem(key,JSON.stringify(data))}catch{control
 const phone=q('.phone'),page=document.createElement('section');page.className='flow-page';page.hidden=true;phone.append(page);
 let leave=null,backAction=null,session=null,view=null,focusBefore=null;
 function cleanup(){if(leave){const f=leave;leave=null;f()}}
-function home(){cleanup();page.hidden=true;page.innerHTML='';page.inert=false;session=null;removeView();qa('.phone>header,.phone>.tab-page,.phone>.nav').forEach(e=>e.inert=false);q('.nav [aria-current]')?.focus()}
+function home(){hiddenUnlocked=false;hiddenAuthActive=false;hiddenAuthEpoch++;cleanup();page.hidden=true;page.innerHTML='';page.inert=false;session=null;removeView();qa('.phone>header,.phone>.tab-page,.phone>.nav').forEach(e=>e.inert=false);q('.nav [aria-current]')?.focus()}
 function screen(title,html,back=home,tool=''){cleanup();removeView();page.hidden=false;page.dataset.layout='';page.innerHTML=`<div class="flow-head"><button class="flow-back" aria-label="Back">${icon('chevron')}</button><h2>${esc(title)}</h2>${tool}</div><div class="flow-body">${html}</div>`;qa('.phone>header,.phone>.tab-page,.phone>.nav').forEach(e=>e.inert=true);backAction=back;q('.flow-back').onclick=back;page.querySelector('.flow-body').scrollTop=0;page.querySelector('.flow-back').focus()}
 
 function layout(name){page.dataset.layout=name}
@@ -61,8 +61,45 @@ function picker(title,available,submit,back){const selected=new Set();screen(tit
 function privacyHome(){scanned=data.scanned;hidden=data.items.filter(x=>x.hidden).length;groups.forEach((g,i)=>g.count=data.items.filter(x=>x.group===i&&!x.hidden).length);q('#privacy-before').hidden=data.scanned;q('#privacy-after').hidden=!data.scanned;q('#hidden-count').textContent=hidden;if(data.scanned){renderResults();qa('[data-group]').forEach(b=>b.onclick=()=>reviewItems(Number(b.dataset.group)));q('#review-all').onclick=()=>reviewItems()}}
 function startScan(){if(!data.permissions){modal('Photo access',`${emblem('photo')}<p>Allow access to the photos you choose to review.</p>${primary('photo-access','Select photos')}${secondary('photo-not-now','Not now')}`);q('#photo-not-now').onclick=closeModal;q('#photo-access').onclick=()=>{closeModal();data.permissions=true;save();doScan()};return}doScan()}
 function doScan(){const chosen=scenario();operation('Privacy','Scanning photos…',()=>{if(['failure','unavailable'].includes(chosen)){errorPage('Privacy','Photos could not be scanned. Your previous results have been kept.',doScan,home);return}if(!data.scanned){data.items=chosen==='empty'?[]:catalog.slice(0,24).map(x=>({...x}));data.scanned=true}save();privacyHome();home()},home)}
-function reviewItems(group){const ids=data.items.filter(x=>!x.hidden&&(group===undefined||x.group===group)).map(x=>x.id);picker(group===undefined?'Review photos':groups[group].name,ids,selected=>confirm('Hide photos?',`${selected.length} selected photos will move to Hidden media.`,'Hide photos',()=>{data.items.forEach(x=>{if(selected.includes(x.id))x.hidden=true});save();privacyHome();screen('Photos hidden',emblem('eye')+`<div class="flow-center"><h3>${selected.length} photos hidden</h3></div>`+primary('hidden-done','Done'),()=>reviewItems(group));layout('success');dock('#hidden-done');q('#hidden-done').onclick=home}),home);if(ids.length)q('#pick-submit').textContent='Hide selected';else page.querySelector('.flow-body').innerHTML=empty('Nothing to review','There are no photos in this category.','photo')}
-function hiddenMedia(){const ids=data.items.filter(x=>x.hidden).map(x=>x.id);picker('Hidden media',ids,selected=>confirm('Restore photos?',`${selected.length} photos will return to your review list.`,'Restore photos',()=>{data.items.forEach(x=>{if(selected.includes(x.id))x.hidden=false});save();privacyHome();hiddenMedia()}),home);if(ids.length)q('#pick-submit').textContent='Restore selected';else page.querySelector('.flow-body').innerHTML=empty('No hidden media','Photos you hide will appear here.','folder')}
+function reviewItems(group){const ids=data.items.filter(x=>!x.hidden&&(group===undefined||x.group===group)).map(x=>x.id);picker(group===undefined?'Review photos':groups[group].name,ids,selected=>confirm('Hide photos?',`${selected.length} selected photos will move to Hidden media.`,'Hide photos',()=>{const finish=()=>{data.items.forEach(x=>{if(selected.includes(x.id))x.hidden=true});save();privacyHome();screen('Photos hidden',emblem('eye')+`<div class="flow-center"><h3>${selected.length} photos hidden</h3></div>`+primary('hidden-done','Done'),()=>reviewItems(group));layout('success');dock('#hidden-done');q('#hidden-done').onclick=home};if(!data.hiddenCredential)hiddenAuthenticate(finish,()=>reviewItems(group));else finish()}),home);if(ids.length)q('#pick-submit').textContent='Hide selected';else page.querySelector('.flow-body').innerHTML=empty('Nothing to review','There are no photos in this category.','photo')}
+function hiddenMedia(){if(!hiddenUnlocked)return hiddenAuthenticate(hiddenMedia);const ids=data.items.filter(x=>x.hidden).map(x=>x.id);picker('Hidden media',ids,selected=>confirm('Restore photos?',`${selected.length} photos will return to your review list.`,'Restore photos',()=>{data.items.forEach(x=>{if(selected.includes(x.id))x.hidden=false});save();privacyHome();hiddenMedia()}),home);if(ids.length)q('#pick-submit').textContent='Restore selected';else page.querySelector('.flow-body').innerHTML=empty('No hidden media','Photos you hide will appear here.','folder')}
+
+// Hidden media has its own prototype passcode, independent of Secret Space.
+let hiddenUnlocked=false,hiddenAuthActive=false,hiddenAuthEpoch=0;
+async function hiddenDigest(pin,salt){
+ const bytes=new TextEncoder().encode(salt+':'+pin);
+ return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+}
+function hiddenAuthenticate(done,back=home){
+ hiddenAuthActive=true;hiddenUnlocked=false;
+ const epoch=++hiddenAuthEpoch,existing=data.hiddenCredential;let first='';
+ function show(confirming=false){
+  pinScreen({screenTitle:'Hidden media',title:existing?'Enter Hidden media<br>passcode':confirming?'Confirm Hidden media<br>passcode':'Create Hidden media<br>passcode',
+   id:'hidden-pin',buttonId:'hidden-pin-submit',label:existing?'Unlock':confirming?'Save passcode':'Continue',
+   back:()=>{if(confirming){first='';show(false)}else{hiddenAuthActive=false;hiddenAuthEpoch++;back()}},
+   submit:async(value,error)=>{
+    if(!/^\d{4}$/.test(value)){error('Enter 4 digits.');return}
+    if(!existing&&!confirming){first=value;show(true);return}
+    if(!existing&&value!==first){error('Passcodes don’t match. Try again.');return}
+    const button=q('#hidden-pin-submit');button.disabled=true;
+    try{
+     const salt=existing?.salt||Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
+     const hash=await hiddenDigest(value,salt);if(epoch!==hiddenAuthEpoch)return;
+     if(existing&&hash!==existing.hash){error('Incorrect passcode. Try again.');return}
+     if(!existing){
+      const credential={salt,hash};data.hiddenCredential=credential;
+      try{localStorage.setItem(key,JSON.stringify(data))}catch{delete data.hiddenCredential;throw Error('storage')}
+     }
+     hiddenAuthActive=false;hiddenUnlocked=true;done();
+    }catch{if(epoch===hiddenAuthEpoch)error('Could not save or verify. Please try again.')}
+   }});
+ }
+ show();
+}
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&(hiddenUnlocked||hiddenAuthActive)){hiddenUnlocked=false;hiddenAuthActive=false;hiddenAuthEpoch++;if(dialog.open)closeModal();home()}
+});
+
 q('#scan').onclick=startScan;q('#rescan').onclick=startScan;q('#review-all').onclick=()=>reviewItems();q('#hidden-media').onclick=hiddenMedia;privacyHome();
 // Cloud concept: local selection and simulated transfer; no account, quota or pricing assumptions.
 function cloud(){screen('Cloud Storage',data.cloud.length?mediaHeading(data.cloud.length)+grid(data.cloud):empty('Your storage is empty','Choose media to add to your storage.','cloud'));page.querySelector('.flow-body').insertAdjacentHTML('beforeend',primary('cloud-add','Add media'));layout(data.cloud.length?'gallery':'empty');dock('#cloud-add');wireGrid();q('#cloud-add').onclick=()=>picker('Select media',catalog.map(x=>x.id).filter(id=>!data.cloud.includes(id)),upload,cloud)}
@@ -70,8 +107,8 @@ function upload(ids){const chosen=scenario();operation('Cloud Storage','Uploadin
 // Secret Space: credentials are prototype-only values, never real secrets.
 function vaultEntry(){session=null;if(!data.vault.main){screen('Secret Space',emblem('lock')+'<div class="flow-center"><h3>A space just for you</h3><p>Your private media, behind a passcode.</p></div>'+primary('vault-create','Create main passcode'));layout('intro');dock('#vault-create');q('#vault-create').onclick=()=>setPasscode('main',()=>{session='real';screen('Display passcode',emblem('eye')+'<p>A second passcode opens a separate collection.</p>'+primary('create-decoy','Create display passcode')+secondary('skip-decoy','Skip'),vaultEntry);layout('intro');dock('#create-decoy','#skip-decoy');q('#create-decoy').onclick=()=>setPasscode('decoy',()=>vaultGallery('real'));q('#skip-decoy').onclick=()=>vaultGallery('real')});return}unlock()}
 // Four-digit creation, with compatibility for already-saved longer prototype passcodes.
-function pinScreen({title,kind='lock',id,buttonId,label,back,submit,length=4}){
- screen('Secret Space',`<div class="pin-heading">${emblem(kind)}<h3>${title}</h3></div><div class="pin-entry"><div class="pin-slots ${length>4?'pin-legacy':''}" aria-hidden="true">${Array.from({length},()=>'<span></span>').join('')}</div><input id="${id}" class="pin-input" type="password" aria-label="Passcode" inputmode="none" autocomplete="off" maxlength="${length}" aria-describedby="pin-error"></div><p id="pin-error" class="flow-error pin-error" role="alert"></p><div class="pin-keypad" aria-label="Numeric keypad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-digit="${n}" aria-label="${n}">${n}</button>`).join('')}<span></span><button type="button" data-digit="0" aria-label="0">0</button><button type="button" class="pin-delete" aria-label="Delete digit">Delete</button></div>${primary(buttonId,label)}`,back);
+function pinScreen({screenTitle='Secret Space',title,kind='lock',id,buttonId,label,back,submit,length=4}){
+ screen(screenTitle,`<div class="pin-heading">${emblem(kind)}<h3>${title}</h3></div><div class="pin-entry"><div class="pin-slots ${length>4?'pin-legacy':''}" aria-hidden="true">${Array.from({length},()=>'<span></span>').join('')}</div><input id="${id}" class="pin-input" type="password" aria-label="Passcode" inputmode="none" autocomplete="off" maxlength="${length}" aria-describedby="pin-error"></div><p id="pin-error" class="flow-error pin-error" role="alert"></p><div class="pin-keypad" aria-label="Numeric keypad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-digit="${n}" aria-label="${n}">${n}</button>`).join('')}<span></span><button type="button" data-digit="0" aria-label="0">0</button><button type="button" class="pin-delete" aria-label="Delete digit">Delete</button></div>${primary(buttonId,label)}`,back);
  layout('pin');dock('#'+buttonId);const input=q('#'+id),button=q('#'+buttonId),slots=[...page.querySelectorAll('.pin-slots span')];
  const update=()=>{input.value=input.value.replace(/\D/g,'').slice(0,length);slots.forEach((el,i)=>{el.classList.toggle('filled',i<input.value.length);el.classList.toggle('next',i===input.value.length)});q('#pin-error').textContent='';page.classList.remove('pin-invalid');button.disabled=input.value.length<4};
  input.oninput=update;input.onkeydown=e=>{if(e.key==='Enter'&&!button.disabled){e.preventDefault();button.click()}};
