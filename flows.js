@@ -35,7 +35,7 @@ q('#flow-reset').onclick=()=>confirm('Reset preview?','Clear this prototype’s 
 q('#flow-revoke').onclick=()=>{data.permissions=false;protections.forEach(p=>{p.authorized=false;p.enabled=false});persistProtection();syncProtection();save()};
 // Settings: no unconfirmed brand, version, external policy or feedback destination.
 q('#settings').onclick=settings;
-function settings(){screen('Settings',row('about','About','shield')+'<div class="flow-list">'+row('policy','Privacy Policy','lock')+row('terms','Terms of Use','doc')+'</div>'+row('feedback','Feedback','chat'));layout('settings');q('#about').onclick=()=>screen('About',emblem('shield')+'<div class="flow-center"><h3>Security · Privacy</h3><p>Manage protection, review device and Wi-Fi checks, and keep private media organized.</p></div>'+row('about-features','Features','gauge'),settings);q('#policy').onclick=()=>policy('Privacy Policy');q('#terms').onclick=()=>policy('Terms of Use');q('#feedback').onclick=feedback;}
+function settings(){screen('Settings',row('about','About','shield')+row('hidden-passcode-settings',data.hiddenCredential?'Change Hidden media passcode':'Set Hidden media passcode','lock')+'<div class="flow-list">'+row('policy','Privacy Policy','lock')+row('terms','Terms of Use','doc')+'</div>'+row('feedback','Feedback','chat'));layout('settings');q('#about').onclick=()=>screen('About',emblem('shield')+'<div class="flow-center"><h3>Security · Privacy</h3><p>Manage protection, review device and Wi-Fi checks, and keep private media organized.</p></div>'+row('about-features','Features','gauge'),settings);q('#policy').onclick=()=>policy('Privacy Policy');q('#terms').onclick=()=>policy('Terms of Use');q('#feedback').onclick=feedback;q('#hidden-passcode-settings').onclick=hiddenPasscodeSettings;}
 function policy(title){screen(title,'<div class="policy-empty">'+empty('Not available','This information is currently unavailable. Please try again later.','doc')+'</div>'+primary('retry-policy','Try again'),settings);layout('empty');dock('#retry-policy');q('#retry-policy').onclick=()=>policy(title)}
 phone.addEventListener('click',e=>{if(e.target.closest('#about-features'))screen('Features',row('feature-security','Security','shield')+row('feature-status','Status','gauge')+row('feature-privacy','Privacy','eye'),settings)});
 phone.addEventListener('click',e=>{const id=e.target.closest('[id]')?.id;const m={'feature-security':'security','feature-status':'status','feature-privacy':'privacy'};if(m[id]){home();q(`[data-tab="${m[id]}"]`).click()}});
@@ -70,11 +70,11 @@ async function hiddenDigest(pin,salt){
  const bytes=new TextEncoder().encode(salt+':'+pin);
  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 }
-function hiddenAuthenticate(done,back=home){
+function hiddenAuthenticate(done,back=home,promptTitle){
  hiddenAuthActive=true;hiddenUnlocked=false;
  const epoch=++hiddenAuthEpoch,existing=data.hiddenCredential;let first='';
  function show(confirming=false){
-  pinScreen({screenTitle:'Hidden media',title:existing?'Enter Hidden media<br>passcode':confirming?'Confirm Hidden media<br>passcode':'Create Hidden media<br>passcode',
+  pinScreen({screenTitle:'Hidden media',title:existing?(promptTitle||'Enter Hidden media<br>passcode'):confirming?'Confirm Hidden media<br>passcode':'Create Hidden media<br>passcode',
    id:'hidden-pin',buttonId:'hidden-pin-submit',label:existing?'Unlock':confirming?'Save passcode':'Continue',
    back:()=>{if(confirming){first='';show(false)}else{hiddenAuthActive=false;hiddenAuthEpoch++;back()}},
    submit:async(value,error)=>{
@@ -96,6 +96,37 @@ function hiddenAuthenticate(done,back=home){
  }
  show();
 }
+
+function hiddenPasscodeSettings(){
+ const finish=()=>{hiddenUnlocked=false;hiddenAuthActive=false;hiddenAuthEpoch++;settings();toast('Hidden media passcode saved')};
+ if(!data.hiddenCredential)return hiddenAuthenticate(finish,settings);
+ hiddenAuthenticate(()=>{
+  hiddenUnlocked=false;hiddenAuthActive=true;
+  const epoch=++hiddenAuthEpoch,original=data.hiddenCredential;let first='';
+  const cancel=()=>{hiddenAuthActive=false;hiddenAuthEpoch++;settings()};
+  function show(confirming=false){
+   pinScreen({screenTitle:'Hidden media',title:confirming?'Confirm new<br>passcode':'Create new<br>passcode',
+    id:'hidden-new-pin',buttonId:'hidden-new-submit',label:confirming?'Save passcode':'Continue',
+    back:()=>{if(confirming){first='';show(false)}else cancel()},
+    submit:async(value,error)=>{
+     if(!/^\d{4}$/.test(value)){error('Enter 4 digits.');return}
+     if(!confirming){first=value;show(true);return}
+     if(value!==first){error('Passcodes don’t match. Try again.');return}
+     q('#hidden-new-submit').disabled=true;
+     try{
+      const salt=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
+      const hash=await hiddenDigest(value,salt);if(epoch!==hiddenAuthEpoch)return;
+      if(data.hiddenCredential!==original){error('Passcode changed. Return to Settings and try again.');return}
+      const credential={salt,hash};
+      localStorage.setItem(key,JSON.stringify({...data,hiddenCredential:credential}));
+      data.hiddenCredential=credential;finish();
+     }catch{if(epoch===hiddenAuthEpoch)error('Could not save. Your current passcode is unchanged.')}
+    }});
+  }
+  show();
+ },settings,'Enter current<br>passcode');
+}
+
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden&&(hiddenUnlocked||hiddenAuthActive)){hiddenUnlocked=false;hiddenAuthActive=false;hiddenAuthEpoch++;if(dialog.open)closeModal();home()}
 });
